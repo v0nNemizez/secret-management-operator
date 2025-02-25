@@ -1,0 +1,33 @@
+name: Build and Push Docker Image on Release
+
+on:
+  release:
+    types: [published]  # Kjør kun når en ny release publiseres
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write  # Nødvendig for å pushe til GHCR
+
+    steps:
+      - name: Sjekk ut koden
+        uses: actions/checkout@v4
+
+      - name: Logg inn i GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Sett opp Docker image-tag
+        run: echo "IMAGE_TAG=ghcr.io/${{ github.repository_owner }}/my-app:${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+
+      - name: Bygg og tag Docker-image
+        run: docker build -t $IMAGE_TAG .
+
+      - name: Push Docker-image til GHCR
+        run: docker push $IMAGE_TAG
