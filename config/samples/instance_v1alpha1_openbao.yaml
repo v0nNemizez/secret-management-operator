@@ -1,0 +1,9 @@
+apiVersion: instance.secrets.com/v1alpha1
+kind: OpenBao
+metadata:
+  labels:
+    app.kubernetes.io/name: secret-management-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: openbao-sample
+spec:
+  # TODO(user): Add fields here
