@@ -63,7 +63,7 @@ spec:
         args:
           - --leader-elect
           - --health-probe-bind-address=:8081
-        image: controller:latest
+        image: ghcr.io/v0nnemizez/secret-management-operator:1.0.1
         name: manager
         securityContext:
           allowPrivilegeEscalation: false
