@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Sjekk ut koden
-        uses: actions/checkout@v4  # Sørger for at repoet lastes ned
+        uses: actions/checkout@v4
 
       - name: Logg inn i GitHub Container Registry (GHCR)
         uses: docker/login-action@v3
@@ -23,10 +23,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Sett opp image-tag i lowercase
+        run: echo "IMAGE_TAG=ghcr.io/$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]'):${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+
       - name: Bygg og push Docker-image
         uses: docker/build-push-action@v5
         with:
-          context: .  # Endre til ./docker hvis Dockerfile ligger i en undermappe
-          file: ./Dockerfile  # Endre hvis filnavnet er annerledes
+          context: .
+          file: ./Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}:${{ github.event.release.tag_name }}
+          tags: ${{ env.IMAGE_TAG }}
