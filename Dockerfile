@@ -1,7 +1,7 @@
 # Build the manager binary
 FROM golang:1.22 AS builder
-ARG TARGETOS=linux
-ARG TARGETARCH=amd64
+ARG TARGETOS
+ARG TARGETARCH
 
 WORKDIR /workspace
 COPY go.mod go.sum ./
@@ -11,10 +11,10 @@ COPY cmd/main.go cmd/main.go
 COPY api/ api/
 COPY internal/controller/ internal/controller/
 
-# Bygg binæren med eksplisitt GOOS og GOARCH
+# Build the binary with explicit GOOS and GOARCH
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -a -o manager cmd/main.go
 
-# Bruk distroless som minimal base image
+# Use distroless as minimal base image
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
 COPY --from=builder /workspace/manager .

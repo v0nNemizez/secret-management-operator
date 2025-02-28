@@ -6,30 +6,37 @@ on:
 
 permissions:
   contents: read
-  packages: write  # Gir nødvendig tilgang til GHCR
+  packages: write
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Sjekk ut koden
+      - name: Check out the code
         uses: actions/checkout@v4
 
-      - name: Logg inn i GitHub Container Registry (GHCR)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to GitHub Container Registry (GHCR)
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Sett opp image-tag i lowercase
+      - name: Set up image tag in lowercase
         run: echo "IMAGE_TAG=ghcr.io/$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]'):${{ github.event.release.tag_name }}" >> $GITHUB_ENV
 
-      - name: Bygg og push Docker-image
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ${{ env.IMAGE_TAG }}
+          build-args: |
+            TARGETOS=linux
+            TARGETARCH=$TARGETARCH
