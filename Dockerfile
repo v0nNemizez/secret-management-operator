@@ -11,6 +11,9 @@ COPY cmd/main.go cmd/main.go
 COPY api/ api/
 COPY internal/controller/ internal/controller/
 
+# Print environment variables for debugging
+RUN echo "TARGETOS=$TARGETOS" && echo "TARGETARCH=$TARGETARCH"
+
 # Build the binary with explicit GOOS and GOARCH
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -a -o manager cmd/main.go
 
