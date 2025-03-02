@@ -6,6 +6,7 @@ metadata:
     app.kubernetes.io/name: secret-management-operator
     app.kubernetes.io/managed-by: kustomize
   name: leader-election-role
+  namespace: secret-management-operator-system
 rules:
 - apiGroups:
   - ""

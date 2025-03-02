@@ -6,4 +6,39 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: openbao-sample
 spec:
-  # TODO(user): Add fields here
+  replicas: 1
+  storageSize: 1Gi
+  image: openbao/openbao:latest
+  config: |
+    {
+      "ui": true,
+      "api_addr": "https://127.0.0.1:8200",
+      "cluster_addr": "https://127.0.0.1:8201",
+      "storage": {
+        "raft": {
+          "path": "/path/to/raft/data",
+          "node_id": "raft_node_1"
+        }
+      },
+      "listener": {
+        "tcp": {
+          "address": "127.0.0.1:8200",
+          "tls_cert_file": "/path/to/full-chain.pem",
+          "tls_key_file": "/path/to/private-key.pem"
+        }
+      },
+      "telemetry": {
+        "statsite_address": "127.0.0.1:8125",
+        "disable_hostname": true
+      },
+      "seal": {
+        "awskms": {
+          "region": "us-east-1",
+          "kms_key_id": "your-kms-key-id"
+        }
+      },
+      "plugin_directory": "/etc/openbao/plugins",
+      "disable_cache": false,
+      "cache_size": "131072",
+      "cluster_name": "openbao-cluster"
+    }
