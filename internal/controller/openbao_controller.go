@@ -71,8 +71,10 @@ func (r *OpenBaoReconciler) ensureStatefulSet(ctx context.Context, req ctrl.Requ
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Name:  "openbao",
-							Image: openbao.Spec.Image,
+							Name:    "openbao",
+							Image:   openbao.Spec.Image,
+							Command: []string{"bao"},
+							Args:    []string{"server --config /etc/openbao/config.json"},
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "config-volume",
