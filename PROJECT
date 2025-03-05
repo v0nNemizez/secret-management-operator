@@ -20,4 +20,13 @@ resources:
   kind: OpenBao
   path: github.com/v0nNemizez/secret-management-operator/api/v1alpha1
   version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: secrets.com
+  group: instance
+  kind: Cluster
+  path: github.com/v0nNemizez/secret-management-operator/api/v1alpha1
+  version: v1alpha1
 version: "3"

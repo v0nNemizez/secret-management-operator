@@ -1,0 +1,38 @@
+apiVersion: instance.secrets.com/v1alpha1
+kind: Cluster
+metadata:
+  labels:
+    app.kubernetes.io/name: secret-management-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: cluster-sample
+spec:
+  clusterSize: 3
+  storageSize: "1Gi"
+  image: "openbao/openbao:latest"
+  config: |
+      {
+      "ui": false,
+      "api_addr": "https://127.0.0.1:8200",
+      "cluster_addr": "https://127.0.0.1:8201",
+      "storage": {
+        "raft": {
+          "path": "/var/lib/openbao",
+          "node_id": "{$POD_NAME}"
+        }
+      },
+      "listener": {
+        "tcp": {
+          "address": "127.0.0.1:8200",
+          "tls_cert_file": "/path/to/full-chain.pem",
+          "tls_key_file": "/path/to/private-key.pem"
+        }
+      },
+      "telemetry": {
+        "statsite_address": "127.0.0.1:8125",
+        "disable_hostname": true
+      },
+      "plugin_directory": "/etc/openbao/plugins",
+      "disable_cache": false,
+      "cache_size": "131072",
+      "cluster_name": "openbao-cluster"
+    }
