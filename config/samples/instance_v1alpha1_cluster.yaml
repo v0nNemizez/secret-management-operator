@@ -1,4 +1,4 @@
-apiVersion: instance.secrets.com/v1alpha1
+apiVersion: clusters.secrets.com/v1alpha1
 kind: Cluster
 metadata:
   labels:
@@ -10,7 +10,7 @@ spec:
   storageSize: "1Gi"
   image: "openbao/openbao:latest"
   config: |
-      {
+    {
       "ui": false,
       "api_addr": "https://127.0.0.1:8200",
       "cluster_addr": "https://127.0.0.1:8201",
@@ -36,3 +36,12 @@ spec:
       "cache_size": "131072",
       "cluster_name": "openbao-cluster"
     }
+  envs:
+    - name: VAULT_SEAL_TYPE
+      value: "awskms"
+    - name: VAULT_SEAL_AWSKMS_REGION
+      value: "another-value"
+    - name: VAULT_SEAL_AWSKMS_KMS_KEY_ID
+      value: "your-kms-key-id"
+    - name: VAULT_SEAL_AWSKMS_ACCESS_KEY
+      value: "your-access-key"
