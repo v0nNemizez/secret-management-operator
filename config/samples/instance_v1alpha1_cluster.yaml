@@ -1,4 +1,4 @@
-apiVersion: clusters.secrets.com/v1alpha1
+apiVersion: instance.secrets.com/v1alpha1
 kind: Cluster
 metadata:
   labels:
@@ -23,8 +23,8 @@ spec:
       "listener": {
         "tcp": {
           "address": "127.0.0.1:8200",
-          "tls_cert_file": "/path/to/full-chain.pem",
-          "tls_key_file": "/path/to/private-key.pem"
+          "tls_cert_file": "/etc/openbao/cert/tls.crt",
+          "tls_key_file": "/etc/openbao/cert/tls.pem"
         }
       },
       "telemetry": {

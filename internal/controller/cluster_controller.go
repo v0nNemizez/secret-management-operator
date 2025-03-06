@@ -14,6 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	instancev1alpha1 "github.com/v0nNemizez/secret-management-operator/api/v1alpha1"
+	"github.com/v0nNemizez/secret-management-operator/internal/lib/certificates"
 )
 
 // ClusterReconciler reconciles a Cluster object
@@ -64,6 +65,10 @@ func (r *ClusterReconciler) ensureStatefulSet(ctx context.Context, req ctrl.Requ
 									Name:      "data-volume",
 									MountPath: "/var/lib/openbao",
 								},
+								{
+									Name:      "cert-volume",
+									MountPath: "/etc/openbao/cert",
+								},
 							},
 						},
 					},
@@ -75,6 +80,14 @@ func (r *ClusterReconciler) ensureStatefulSet(ctx context.Context, req ctrl.Requ
 									LocalObjectReference: corev1.LocalObjectReference{
 										Name: req.Name + "-config",
 									},
+								},
+							},
+						},
+						{
+							Name: "cert-volume",
+							VolumeSource: corev1.VolumeSource{
+								Secret: &corev1.SecretVolumeSource{
+									SecretName: req.Name + "-cert",
 								},
 							},
 						},
@@ -145,6 +158,37 @@ func getEnvVars(envs []instancev1alpha1.EnvOptions) []corev1.EnvVar {
 	return envVars
 }
 
+func (r *ClusterReconciler) ensureCertificateGeneration(ctx context.Context, req ctrl.Request, cluster *instancev1alpha1.Cluster) error {
+	cert, key, err := certificates.GenerateCertificate()
+	if err != nil {
+		return err
+	}
+
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      req.Name + "-cert",
+			Namespace: req.Namespace,
+		},
+		Data: map[string][]byte{
+			"cert.pem": cert,
+			"key.pem":  key,
+		},
+	}
+
+	found := &corev1.Secret{}
+	err = r.Get(ctx, client.ObjectKey{Name: secret.Name, Namespace: secret.Namespace}, found)
+	if err != nil {
+		if client.IgnoreNotFound(err) != nil {
+			return err
+		}
+
+		return r.Create(ctx, secret)
+	}
+
+	found.Data = secret.Data
+	return r.Update(ctx, found)
+}
+
 func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 
@@ -194,6 +238,11 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, err
 	}
 
+	err = r.ensureCertificateGeneration(ctx, req, cluster)
+	if err != nil {
+		log.Error(err, "Feil ved generering av sertifikat")
+		return ctrl.Result{}, err
+	}
 	return ctrl.Result{}, nil
 }
 
