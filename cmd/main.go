@@ -18,7 +18,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	instancev1alpha1 "github.com/v0nNemizez/secret-management-operator/api/v1alpha1"
-	"github.com/v0nNemizez/secret-management-operator/internal/controller"
+	controller "github.com/v0nNemizez/secret-management-operator/internal/controller"
 )
 
 var (
