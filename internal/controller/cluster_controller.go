@@ -14,7 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	instancev1alpha1 "github.com/v0nNemizez/secret-management-operator/api/v1alpha1"
-	"github.com/v0nNemizez/secret-management-operator/internal/lib/certificates"
+	"github.com/v0nNemizez/secret-management-operator/pkg/lib/certificates"
 )
 
 // ClusterReconciler reconciles a Cluster object
@@ -29,6 +29,7 @@ type ClusterReconciler struct {
 // +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch
 // +kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;update;patch;delete
 
 func (r *ClusterReconciler) ensureStatefulSet(ctx context.Context, req ctrl.Request, cluster *instancev1alpha1.Cluster) error {
 	replicas := int32(cluster.Spec.ClusterSize)
