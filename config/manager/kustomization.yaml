@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: ghcr.io/v0nnemizez/secret-management-operator
-  newTag: 1.0.9
+  newTag: 10.0.14

@@ -36,12 +36,3 @@ spec:
       "cache_size": "131072",
       "cluster_name": "openbao-cluster"
     }
-  envs:
-    - name: VAULT_SEAL_TYPE
-      value: "awskms"
-    - name: VAULT_SEAL_AWSKMS_REGION
-      value: "another-value"
-    - name: VAULT_SEAL_AWSKMS_KMS_KEY_ID
-      value: "your-kms-key-id"
-    - name: VAULT_SEAL_AWSKMS_ACCESS_KEY
-      value: "your-access-key"

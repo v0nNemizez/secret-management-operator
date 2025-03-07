@@ -4,6 +4,7 @@ import (
 	"context"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -171,7 +172,7 @@ func (r *ClusterReconciler) ensureCertificateGeneration(ctx context.Context, req
 			Namespace: req.Namespace,
 		},
 		Data: map[string][]byte{
-			"cert.pem": cert,
+			"cert.crt": cert,
 			"key.pem":  key,
 		},
 	}
@@ -196,54 +197,64 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	cluster := &instancev1alpha1.Cluster{}
 	err := r.Get(ctx, req.NamespacedName, cluster)
 	if err != nil {
-		if client.IgnoreNotFound(err) != nil {
-			log.Error(err, "Feil ved henting av Cluster-ressursen")
-			return ctrl.Result{}, err
+		if errors.IsNotFound(err) {
+			// Resource is already deleted, no further action needed
+			return ctrl.Result{}, nil
 		}
-		// Ressursen finnes ikke, så ingen videre handling nødvendig
-		return ctrl.Result{}, nil
+		log.Error(err, "Failed to fetch Cluster resource")
+		return ctrl.Result{}, err
 	}
 
+	// Handle deletion
 	if !cluster.DeletionTimestamp.IsZero() {
+		// Perform cleanup, but don’t fail the reconcile if cleanup encounters ignorable errors
 		if err := r.cleanupResources(ctx, req); err != nil {
-			log.Error(err, "Feil ved sletting av StatefulSet og pods")
-			return ctrl.Result{}, err
+			log.Error(err, "Error during resource cleanup, proceeding with finalizer removal")
+			// Log the error but don’t return it—allow finalizer removal to proceed
 		}
 
-		controllerutil.RemoveFinalizer(cluster, "finalizer.instance.secrets.com")
-		if err := r.Update(ctx, cluster); err != nil {
-			return ctrl.Result{}, err
+		// Remove finalizer if present
+		if controllerutil.ContainsFinalizer(cluster, "finalizer.instance.secrets.com") {
+			log.Info("Removing finalizer from Cluster")
+			controllerutil.RemoveFinalizer(cluster, "finalizer.instance.secrets.com")
+			if err := r.Update(ctx, cluster); err != nil {
+				log.Error(err, "Failed to remove finalizer")
+				return ctrl.Result{}, err
+			}
 		}
 
 		return ctrl.Result{}, nil
 	}
 
-	// Sørg for at finalizer er satt
+	// Add finalizer if not present (creation/update case)
 	if !controllerutil.ContainsFinalizer(cluster, "finalizer.instance.secrets.com") {
+		log.Info("Adding finalizer to Cluster")
 		controllerutil.AddFinalizer(cluster, "finalizer.instance.secrets.com")
 		if err := r.Update(ctx, cluster); err != nil {
+			log.Error(err, "Failed to add finalizer")
 			return ctrl.Result{}, err
 		}
 	}
 
-	// Sørg for at StatefulSet eksisterer
+	// Normal reconciliation logic
 	err = r.ensureStatefulSet(ctx, req, cluster)
 	if err != nil {
-		log.Error(err, "Feil ved opprettelse av StatefulSet")
+		log.Error(err, "Failed to ensure StatefulSet")
 		return ctrl.Result{}, err
 	}
 
 	err = r.ensureConfigMap(ctx, req, cluster)
 	if err != nil {
-		log.Error(err, "Feil ved opprettelse av ConfigMap")
+		log.Error(err, "Failed to ensure ConfigMap")
 		return ctrl.Result{}, err
 	}
 
 	err = r.ensureCertificateGeneration(ctx, req, cluster)
 	if err != nil {
-		log.Error(err, "Feil ved generering av sertifikat")
+		log.Error(err, "Failed to ensure certificate generation")
 		return ctrl.Result{}, err
 	}
+
 	return ctrl.Result{}, nil
 }
 
@@ -251,27 +262,44 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 func (r *ClusterReconciler) cleanupResources(ctx context.Context, req ctrl.Request) error {
 	logger := log.FromContext(ctx)
 
-	// Slett StatefulSet
+	// Delete StatefulSet if it exists
 	sts := &appsv1.StatefulSet{}
 	err := r.Get(ctx, req.NamespacedName, sts)
-	if err == nil {
-		if err := r.Delete(ctx, sts); err != nil {
-			logger.Error(err, "Kunne ikke slette StatefulSet")
+	if err != nil {
+		if errors.IsNotFound(err) {
+			logger.Info("StatefulSet not found, skipping deletion")
+		} else {
+			logger.Error(err, "Failed to fetch StatefulSet")
 			return err
+		}
+	} else {
+		if err := r.Delete(ctx, sts); err != nil {
+			if !errors.IsNotFound(err) {
+				logger.Error(err, "Failed to delete StatefulSet")
+				return err
+			}
+			logger.Info("StatefulSet already deleted")
+		} else {
+			logger.Info("StatefulSet deleted successfully")
 		}
 	}
 
-	// Slett alle pods som tilhører denne ressursen
+	// Delete associated pods
 	podList := &corev1.PodList{}
 	if err := r.List(ctx, podList, client.InNamespace(req.Namespace), client.MatchingLabels{"app": req.Name}); err != nil {
-		logger.Error(err, "Kunne ikke liste pods")
+		logger.Error(err, "Failed to list pods")
 		return err
 	}
 
 	for _, pod := range podList.Items {
 		if err := r.Delete(ctx, &pod); err != nil {
-			logger.Error(err, "Kunne ikke slette pod", "Pod", pod.Name)
-			return err
+			if !errors.IsNotFound(err) {
+				logger.Error(err, "Failed to delete pod", "Pod", pod.Name)
+				return err
+			}
+			logger.Info("Pod already deleted", "Pod", pod.Name)
+		} else {
+			logger.Info("Pod deleted successfully", "Pod", pod.Name)
 		}
 	}
 
