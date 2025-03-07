@@ -10,6 +10,7 @@ RUN go mod download
 COPY cmd/main.go cmd/main.go
 COPY api/ api/
 COPY internal/controller/ internal/controller/
+COPY pkg/ pkg/
 
 # Print environment variables for debugging
 RUN echo "TARGETOS=$TARGETOS" && echo "TARGETARCH=$TARGETARCH"
