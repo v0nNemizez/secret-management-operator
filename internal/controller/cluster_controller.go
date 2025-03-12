@@ -118,7 +118,13 @@ func (r *ClusterReconciler) ensureStatefulSet(ctx context.Context, req ctrl.Requ
 
 	// Use the sts variable to create the StatefulSet in the cluster
 	if err := r.Client.Create(ctx, sts); err != nil {
-		return err
+		if !errors.IsAlreadyExists(err) {
+			return err
+		}
+		log.FromContext(ctx).Info("StatefulSet already exists, updating it")
+		if err := r.Client.Update(ctx, sts); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -138,11 +144,10 @@ func (r *ClusterReconciler) ensureConfigMap(ctx context.Context, req ctrl.Reques
 	found := &corev1.ConfigMap{}
 	err := r.Get(ctx, client.ObjectKey{Name: configMap.Name, Namespace: configMap.Namespace}, found)
 	if err != nil {
-		if client.IgnoreNotFound(err) != nil {
-			return err
+		if errors.IsNotFound(err) {
+			return r.Create(ctx, configMap)
 		}
-
-		return r.Create(ctx, configMap)
+		return err
 	}
 
 	found.Data = configMap.Data
@@ -180,11 +185,10 @@ func (r *ClusterReconciler) ensureCertificateGeneration(ctx context.Context, req
 	found := &corev1.Secret{}
 	err = r.Get(ctx, client.ObjectKey{Name: secret.Name, Namespace: secret.Namespace}, found)
 	if err != nil {
-		if client.IgnoreNotFound(err) != nil {
-			return err
+		if errors.IsNotFound(err) {
+			return r.Create(ctx, secret)
 		}
-
-		return r.Create(ctx, secret)
+		return err
 	}
 
 	found.Data = secret.Data
