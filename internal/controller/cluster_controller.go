@@ -24,9 +24,9 @@ type ClusterReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=instance.secrets.com,resources=openbaoes,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=instance.secrets.com,resources=openbaoes/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=instance.secrets.com,resources=openbaoes/finalizers,verbs=update
+// +kubebuilder:rbac:groups=instance.secrets.com,resources=clusters,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=instance.secrets.com,resources=clusters/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=instance.secrets.com,resources=clusters/finalizers,verbs=update
 // +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch
 // +kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
