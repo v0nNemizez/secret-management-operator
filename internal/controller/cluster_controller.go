@@ -70,6 +70,13 @@ func (r *ClusterReconciler) ensureStatefulSet(ctx context.Context, req ctrl.Requ
 								{
 									Name:      "cert-volume",
 									MountPath: "/etc/secrets/cert",
+									SubPath:   "tls.crt",
+								},
+								{
+
+									Name:      "key-volume",
+									MountPath: "/etc/secrets/key",
+									SubPath:   "tls.key",
 								},
 							},
 						},
@@ -177,8 +184,8 @@ func (r *ClusterReconciler) ensureCertificateGeneration(ctx context.Context, req
 			Namespace: req.Namespace,
 		},
 		Data: map[string][]byte{
-			"cert.crt": cert,
-			"key.pem":  key,
+			"tls.crt": cert,
+			"tls.pem": key,
 		},
 	}
 
