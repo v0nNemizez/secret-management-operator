@@ -40,6 +40,7 @@ rules:
 - apiGroups:
   - instance.secrets.com
   resources:
+  - clusters
   - openbaoes
   verbs:
   - create
@@ -52,12 +53,14 @@ rules:
 - apiGroups:
   - instance.secrets.com
   resources:
+  - clusters/finalizers
   - openbaoes/finalizers
   verbs:
   - update
 - apiGroups:
   - instance.secrets.com
   resources:
+  - clusters/status
   - openbaoes/status
   verbs:
   - get
