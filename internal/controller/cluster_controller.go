@@ -69,7 +69,7 @@ func (r *ClusterReconciler) ensureStatefulSet(ctx context.Context, req ctrl.Requ
 								},
 								{
 									Name:      "cert-volume",
-									MountPath: "/etc/openbao/cert",
+									MountPath: "/etc/secrets/cert",
 								},
 							},
 						},

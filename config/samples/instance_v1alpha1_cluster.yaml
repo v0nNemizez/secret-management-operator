@@ -23,8 +23,8 @@ spec:
       "listener": {
         "tcp": {
           "address": "127.0.0.1:8200",
-          "tls_cert_file": "/etc/openbao/cert/tls.crt",
-          "tls_key_file": "/etc/openbao/cert/tls.pem"
+          "tls_cert_file": "/etc/secrets/cert/tls.crt",
+          "tls_key_file": "/etc/secrets/cert/tls.pem"
         }
       },
       "telemetry": {
