@@ -28,11 +28,12 @@ func GenerateCertificate() ([]byte, []byte, error) {
 		},
 		NotBefore: notBefore,
 		NotAfter:  notAfter,
-		KeyUsage:  x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		KeyUsage:  x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 		ExtKeyUsage: []x509.ExtKeyUsage{
 			x509.ExtKeyUsageServerAuth,
 			x509.ExtKeyUsageClientAuth,
 		},
+		IsCA: true,
 		IPAddresses: []net.IP{
 			net.ParseIP("127.0.0.1"),
 		},
