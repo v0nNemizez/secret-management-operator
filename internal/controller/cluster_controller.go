@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -131,18 +132,23 @@ func (r *ClusterReconciler) ensureStatefulSet(ctx context.Context, req ctrl.Requ
 }
 
 func (r *ClusterReconciler) ensureConfigMap(ctx context.Context, req ctrl.Request, cluster *instancev1alpha1.Cluster) error {
+	jsonConfig, err := json.Marshal(cluster.Spec.Config)
+	if err != nil {
+		return err
+	}
+
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      req.Name + "-config",
 			Namespace: req.Namespace,
 		},
 		Data: map[string]string{
-			"config.json": cluster.Spec.Config,
+			"config.json": string(jsonConfig),
 		},
 	}
 
 	found := &corev1.ConfigMap{}
-	err := r.Get(ctx, client.ObjectKey{Name: configMap.Name, Namespace: configMap.Namespace}, found)
+	err = r.Get(ctx, client.ObjectKey{Name: configMap.Name, Namespace: configMap.Namespace}, found)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return r.Create(ctx, configMap)

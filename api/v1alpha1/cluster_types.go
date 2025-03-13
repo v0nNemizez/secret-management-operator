@@ -30,16 +30,47 @@ type EnvOptions struct {
 	Value string `json:"value"`
 }
 
+type ConfigOptions struct {
+	Ui           bool     `json:"ui"`
+	ClusterAddr  string   `json:"clusterAddr"`
+	ApiAddr      string   `json:"apiAddr"`
+	Storage      Storage  `json:"storage"`
+	Listener     Listener `json:"listener"`
+	PluginDir    string   `json:"pluginDir"`
+	DisableCache bool     `json:"disable_cache"`
+	CacheSize    int      `json:"cache_size"`
+	ClusterName  string   `json:"cluster_name"`
+}
+
+type Listener struct {
+	Tcp TcpSettings `json:"tcp"`
+}
+
+type TcpSettings struct {
+	Address     string `json:"address,default:https://127.0.0.1:8200"`
+	TlsCertPath string `json:"tls_cert_file"`
+	TlsKeyPath  string `json:"tls_key_file"`
+}
+
+type Storage struct {
+	Raft RaftSettings `json:"raft"`
+}
+
+type RaftSettings struct {
+	Path   string `json:"path"`
+	NodeId string `json:"node_id"`
+}
+
 type ClusterSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Foo is an example field of Cluster. Edit cluster_types.go to remove/update
-	ClusterSize int32        `json:"clusterSize"`
-	StorageSize string       `json:"storageSize"`
-	Image       string       `json:"image"`
-	Envs        []EnvOptions `json:"envs,omitempty"`
-	Config      string       `json:"config"`
+	ClusterSize int32         `json:"clusterSize"`
+	StorageSize string        `json:"storageSize"`
+	Image       string        `json:"image"`
+	Envs        []EnvOptions  `json:"envs,omitempty"`
+	Config      ConfigOptions `json:"config"`
 }
 
 // ClusterStatus defines the observed state of Cluster

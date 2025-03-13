@@ -9,30 +9,22 @@ spec:
   clusterSize: 1
   storageSize: "1Gi"
   image: "openbao/openbao:latest"
-  config: |
-    {
-      "ui": false,
-      "api_addr": "https://127.0.0.1:8200",
-      "cluster_addr": "https://127.0.0.1:8201",
-      "storage": {
-        "raft": {
-          "path": "/var/lib/openbao",
-          "node_id": "{$POD_NAME}"
-        }
-      },
-      "listener": {
-        "tcp": {
-          "address": "127.0.0.1:8200",
-          "tls_cert_file": "/etc/secrets/cert/tls.crt",
-          "tls_key_file": "/etc/secrets/cert/tls.pem"
-        }
-      },
-      "telemetry": {
-        "statsite_address": "127.0.0.1:8125",
-        "disable_hostname": true
-      },
-      "plugin_directory": "/etc/openbao/plugins",
-      "disable_cache": false,
-      "cache_size": "131072",
-      "cluster_name": "openbao-cluster"
-    }
+  config:
+    ui: false
+    apiAddr: "https://127.0.0.1:8200"
+    clusterAddr: "https://127.0.0.1:8201"
+    storage:
+      raft:
+        path: "/var/lib/openbao"
+        node_id: "{$POD_NAME}"
+    listener:
+        tcp:
+            address: "127.0.0.1:8200"
+            tls_cert_file: "/etc/secrets/cert/tls.crt"
+            tls_key_file: "/etc/secrets/cert/tls.pem"
+    pluginDir: "/etc/openbao/plugins"
+    disable_cache: false
+    cache_size: 131072
+    cluster_name: "openbao-cluster"
+
+
