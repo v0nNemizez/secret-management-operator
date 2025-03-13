@@ -7,6 +7,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"math/big"
+	"net"
 	"time"
 )
 
@@ -31,6 +32,9 @@ func GenerateCertificate() ([]byte, []byte, error) {
 		ExtKeyUsage: []x509.ExtKeyUsage{
 			x509.ExtKeyUsageServerAuth,
 			x509.ExtKeyUsageClientAuth,
+		},
+		IPAddresses: []net.IP{
+			net.ParseIP("127.0.0.1"),
 		},
 	}
 
